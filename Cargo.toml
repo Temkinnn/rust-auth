@@ -5,6 +5,8 @@ edition = "2024"
 
 [dependencies]
 actix-web = "4.14.0"
+dotenvy = "0.15.7"
+jsonwebtoken = "11.0.0"
 serde = "1.0.229"
 serde_json = "1.0.151"
 sqlx = { version = "0.9.0", features = ["runtime-tokio", "postgres"] }
@@ -14,3 +16,6 @@ tracing-subscriber = "0.3.23"
 utoipa = { version = "5.5.0", features = ["actix_extras"] }
 utoipa-actix-web = "0.1.2"
 utoipa-swagger-ui = { version = "9.0.2", features = ["actix-web"] }
+
+[workspace.lints.clippy]
+pedantic = "warn"
