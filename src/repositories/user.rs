@@ -1,5 +1,5 @@
 use crate::{
-    models::users::{CreateUserDto, Role, UpdateUserDto, User},
+    models::user::{CreateUserDto, Role, UpdateUserDto, User},
     types::{Database, DatabaseResult},
 };
 
