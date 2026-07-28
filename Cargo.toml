@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 actix-web = "4.14.0"
+argon2 = { version = "0.5.3", features = ["std"] }
 dotenvy = "0.15.7"
 jsonwebtoken = "11.0.0"
 serde = "1.0.229"
