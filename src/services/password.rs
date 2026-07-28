@@ -8,12 +8,12 @@ use crate::types::AppResult;
 pub struct PasswordService(Argon2<'static>);
 
 impl PasswordService {
-    fn new() -> Self {
+    pub fn new() -> Self {
         let argon = Argon2::default();
         Self(argon)
     }
 
-    fn hash_password(&self, password: &str) -> AppResult<String> {
+    pub fn hash_password(&self, password: &str) -> AppResult<String> {
         let salt = SaltString::generate(OsRng);
 
         Ok(self
@@ -22,7 +22,7 @@ impl PasswordService {
             .to_string())
     }
 
-    async fn verify_password(&self, password: &str, hash: &str) -> AppResult<bool> {
+    pub fn verify_password(&self, password: &str, hash: &str) -> AppResult<bool> {
         let parsed_hash = PasswordHash::new(hash)?;
         Ok(self
             .0
