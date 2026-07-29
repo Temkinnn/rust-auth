@@ -1,6 +1,7 @@
 pub mod config;
 mod env;
 mod errors;
+pub mod handlers;
 mod midlewares;
 mod models;
 mod repositories;

@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{
     errors::AppError,
     models::{
@@ -10,13 +12,13 @@ use crate::{
 };
 
 pub struct AuthService {
-    user_service: UserService,
-    token_service: TokenService,
+    user_service: Arc<UserService>,
+    token_service: Arc<TokenService>,
     password_service: PasswordService,
 }
 
 impl AuthService {
-    pub fn new(user_service: UserService, token_service: TokenService) -> Self {
+    pub fn new(user_service: Arc<UserService>, token_service: Arc<TokenService>) -> Self {
         Self {
             user_service,
             token_service,

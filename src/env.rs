@@ -8,8 +8,8 @@ pub struct Env {
     pub redis: String,
 
     pub jwt_secret: String,
-    pub access_token_expires_mins: u8,
-    pub refresh_token_expires_days: u8,
+    pub access_token_expires_mins: u64,
+    pub refresh_token_expires_days: u64,
 }
 
 impl Env {
