@@ -3,13 +3,11 @@ use tracing::info;
 use utoipa_actix_web::AppExt;
 use utoipa_swagger_ui::SwaggerUi;
 
-use rust_auth::env::Env;
+use rust_auth::config::AppConfig;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    tracing_subscriber::fmt::init();
-
-    let env = Env::init();
+    let config = AppConfig::init().await;
 
     let server = HttpServer::new(|| {
         let (app, openapi) = App::new()
@@ -19,7 +17,7 @@ async fn main() -> std::io::Result<()> {
 
         app.service(SwaggerUi::new("/swagger/{_:.*}").url("/api-docs/openapi.json", openapi))
     })
-    .bind((env.host, env.port))?;
+    .bind((config.env.host, config.env.port))?;
 
     info!("Server has started!");
 

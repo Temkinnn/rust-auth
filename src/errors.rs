@@ -1,4 +1,5 @@
 use actix_web::{HttpResponse, ResponseError, http::StatusCode};
+use redis::RedisError;
 use serde_json::json;
 use thiserror::Error;
 
@@ -6,6 +7,9 @@ use thiserror::Error;
 pub enum AppError {
     #[error("Database Error")]
     Database(#[from] sqlx::Error),
+
+    #[error("Storage Error")]
+    Redis(#[from] RedisError),
 
     #[error("Internal Server Error")]
     Password(#[from] argon2::password_hash::Error),
@@ -30,6 +34,7 @@ impl ResponseError for AppError {
     fn status_code(&self) -> StatusCode {
         match self {
             AppError::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            AppError::Redis(_) => StatusCode::INTERNAL_SERVER_ERROR,
             AppError::Password(_) => StatusCode::INTERNAL_SERVER_ERROR,
             AppError::Jwt(_) => StatusCode::INTERNAL_SERVER_ERROR,
             AppError::NotFound => StatusCode::NOT_FOUND,

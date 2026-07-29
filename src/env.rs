@@ -3,7 +3,9 @@ use std::env;
 pub struct Env {
     pub host: String,
     pub port: u16,
+
     pub database: String,
+    pub redis: String,
 
     pub jwt_secret: String,
     pub access_token_expires_mins: u8,
@@ -22,6 +24,7 @@ impl Env {
             .expect("Failed to parse 'port' variable");
 
         let database = env::var("DATABASE_URL").expect("Failed to load database url");
+        let redis = env::var("REDIS_URL").expect("Failed to load redis url");
 
         let jwt_secret = env::var("JWT_SECRET").expect("Failed to load 'JWT_SECRET' variable");
 
@@ -39,6 +42,7 @@ impl Env {
             host,
             port,
             database,
+            redis,
             jwt_secret,
             access_token_expires_mins,
             refresh_token_expires_days,

@@ -8,6 +8,7 @@ actix-web = "4.14.0"
 argon2 = { version = "0.5.3", features = ["std"] }
 dotenvy = "0.15.7"
 jsonwebtoken = "11.0.0"
+redis = { version = "1.4.1", features = ["tokio-comp"] }
 serde = "1.0.229"
 serde_json = "1.0.151"
 sqlx = { version = "0.9.0", features = ["runtime-tokio", "postgres", "uuid"] }
