@@ -6,7 +6,7 @@ use crate::{
         user::{CreateUserDto, Role},
     },
     services::{password::PasswordService, token::TokenService, user::UserService},
-    types::{AppResult, Id},
+    types::AppResult,
 };
 
 pub struct AuthService {
@@ -16,15 +16,15 @@ pub struct AuthService {
 }
 
 impl AuthService {
-    pub fn new(user_service: UserService) -> Self {
+    pub fn new(user_service: UserService, token_service: TokenService) -> Self {
         Self {
             user_service,
-            token_service: TokenService::new(),
+            token_service,
             password_service: PasswordService::new(),
         }
     }
 
-    pub async fn register(&self, data: RegistrationCredentials) -> AppResult<Tokens> {
+    pub async fn register(&mut self, data: RegistrationCredentials) -> AppResult<Tokens> {
         let user_exists = match self.user_service.get_user_by_email(&data.email).await {
             Ok(_) => true,
             Err(AppError::NotFound) => false,
@@ -48,10 +48,13 @@ impl AuthService {
             .await?;
 
         let tokens = self.token_service.generate_tokens(user.id)?;
+        self.token_service
+            .save_refresh_token(tokens.refresh_token.clone())
+            .await?;
         Ok(tokens)
     }
 
-    pub async fn login(&self, data: LoginCredentials) -> AppResult<Tokens> {
+    pub async fn login(&mut self, data: LoginCredentials) -> AppResult<Tokens> {
         let user = self.user_service.get_user_by_email(&data.email).await?;
 
         let verified_password = self
@@ -63,18 +66,30 @@ impl AuthService {
         }
 
         let tokens = self.token_service.generate_tokens(user.id)?;
+        self.token_service
+            .save_refresh_token(tokens.refresh_token.clone())
+            .await?;
+
         Ok(tokens)
     }
 
-    pub async fn refresh(&self, refresh_token: String) -> AppResult<String> {
-        let verified_token = self.token_service.verify_token(refresh_token)?;
+    pub async fn refresh(&mut self, refresh_token: String) -> AppResult<String> {
+        let verified_token = self.token_service.verify_refresh_token(&refresh_token)?;
 
         let user = self.user_service.get_user_by_id(verified_token.sub).await?;
-        let access_token = self.token_service.generate_access_token(user.id)?;
-        Ok(access_token)
+
+        let tokens = self.token_service.generate_tokens(user.id)?;
+        self.token_service
+            .update_refresh_token(tokens.refresh_token)
+            .await?;
+
+        Ok(tokens.access_token)
     }
 
-    pub async fn logout(&self) {
-        todo!();
+    pub async fn logout(&mut self, refresh_token: String) -> AppResult<()> {
+        let verified_token = self.token_service.verify_refresh_token(&refresh_token)?;
+        self.token_service
+            .delete_refresh_token(verified_token.jti)
+            .await
     }
 }

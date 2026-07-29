@@ -1,45 +1,40 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
+use uuid::Uuid;
 
 use crate::{
-    env::Env,
-    models::token::{Claims, Tokens},
-    types::{AppResult, Id},
+    config::jwt::JwtConfig,
+    models::token::{AccessClaims, RefreshClaims, Tokens},
+    repositories::token::TokenRepository,
+    types::{AppResult, Id, Redis},
 };
 
 pub struct TokenService {
-    secret: String,
-    access_token_expires: u64,
-    refresh_token_expires: u64,
+    jwt: JwtConfig,
+    repo: TokenRepository,
 }
 
 impl TokenService {
-    pub fn new() -> Self {
-        let env = Env::init();
-        Self {
-            secret: env.jwt_secret,
-            access_token_expires: (env.access_token_expires_mins * 60) as u64, // mins to seconds
-            refresh_token_expires: (env.refresh_token_expires_days * 24 * 60 * 60) as u64, // days to seconds
-        }
+    pub fn new(jwt: JwtConfig, repo: TokenRepository) -> Self {
+        Self { jwt, repo }
     }
 
     pub fn generate_access_token(&self, id: Id) -> AppResult<String> {
         let exp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .expect("Failed to get Current Time")
-            .as_secs()
-            + self.access_token_expires;
+            + self.jwt.access_expiration;
 
-        let claims = Claims {
+        let claims = AccessClaims {
             sub: id,
-            exp: exp as usize,
+            exp: exp.as_secs() as usize,
         };
 
         Ok(encode(
             &Header::default(),
             &claims,
-            &EncodingKey::from_secret(self.secret.as_bytes()),
+            &EncodingKey::from_secret(self.jwt.secret.as_bytes()),
         )?)
     }
 
@@ -47,18 +42,18 @@ impl TokenService {
         let exp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .expect("Failed to get Current Time")
-            .as_secs()
-            + self.refresh_token_expires;
+            + self.jwt.refresh_expiration;
 
-        let claims = Claims {
+        let claims = RefreshClaims {
             sub: id,
-            exp: exp as usize,
+            jti: Uuid::now_v7(),
+            exp: exp.as_secs() as usize,
         };
 
         Ok(encode(
             &Header::default(),
             &claims,
-            &EncodingKey::from_secret(self.secret.as_bytes()),
+            &EncodingKey::from_secret(self.jwt.secret.as_bytes()),
         )?)
     }
 
@@ -72,13 +67,41 @@ impl TokenService {
         })
     }
 
-    pub fn verify_token(&self, token: String) -> AppResult<Claims> {
-        let token_data = decode::<Claims>(
+    pub fn verify_access_token(&self, token: &String) -> AppResult<AccessClaims> {
+        let token_data = decode::<AccessClaims>(
             token,
-            &DecodingKey::from_secret(self.secret.as_bytes()),
+            &DecodingKey::from_secret(self.jwt.secret.as_bytes()),
             &Validation::default(),
         )?;
 
         Ok(token_data.claims)
+    }
+
+    pub fn verify_refresh_token(&self, token: &String) -> AppResult<RefreshClaims> {
+        let token_data = decode::<RefreshClaims>(
+            token,
+            &DecodingKey::from_secret(self.jwt.secret.as_bytes()),
+            &Validation::default(),
+        )?;
+
+        Ok(token_data.claims)
+    }
+
+    pub async fn save_refresh_token(&mut self, token: String) -> AppResult<()> {
+        let verified_token = self.verify_refresh_token(&token)?;
+
+        let exp = self.jwt.refresh_expiration.as_secs();
+        self.repo.save_token(verified_token.jti, token, exp).await
+    }
+
+    pub async fn delete_refresh_token(&mut self, jti: Id) -> AppResult<()> {
+        self.repo.delete_token(jti).await
+    }
+
+    pub async fn update_refresh_token(&mut self, token: String) -> AppResult<()> {
+        let verified_token = self.verify_refresh_token(&token)?;
+
+        let exp = self.jwt.refresh_expiration.as_secs();
+        self.repo.update_token(verified_token.jti, token, exp).await
     }
 }

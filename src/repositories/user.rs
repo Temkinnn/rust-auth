@@ -6,8 +6,8 @@ use crate::{
 pub struct UserRepository(Database);
 
 impl UserRepository {
-    pub fn new(pool: Database) -> Self {
-        Self(pool)
+    pub fn new(db: Database) -> Self {
+        Self(db)
     }
 
     pub async fn create_user(&self, dto: CreateUserRepoDto) -> DatabaseResult<User> {

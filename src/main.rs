@@ -3,7 +3,7 @@ use tracing::info;
 use utoipa_actix_web::AppExt;
 use utoipa_swagger_ui::SwaggerUi;
 
-use rust_auth::config::AppConfig;
+use rust_auth::config::app::AppConfig;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
