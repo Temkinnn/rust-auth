@@ -16,8 +16,14 @@ pub enum AppError {
     #[error("Resource not found")]
     NotFound,
 
+    #[error("Resource already exists")]
+    AlreadyExists,
+
     #[error("Unauthorized")]
     Unathorized,
+
+    #[error("Invalid credentials")]
+    InvalidCredentials,
 }
 
 impl ResponseError for AppError {
@@ -27,7 +33,9 @@ impl ResponseError for AppError {
             AppError::Password(_) => StatusCode::INTERNAL_SERVER_ERROR,
             AppError::Jwt(_) => StatusCode::INTERNAL_SERVER_ERROR,
             AppError::NotFound => StatusCode::NOT_FOUND,
+            AppError::AlreadyExists => StatusCode::CONFLICT,
             AppError::Unathorized => StatusCode::UNAUTHORIZED,
+            AppError::InvalidCredentials => StatusCode::BAD_REQUEST,
         }
     }
 

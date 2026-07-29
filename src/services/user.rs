@@ -1,6 +1,8 @@
+use uuid::Uuid;
+
 use crate::{
     errors::AppError,
-    models::user::{CreateUserDto, UpdateUserDto, User},
+    models::user::{CreateUserDto, CreateUserRepoDto, UpdateUserDto, User},
     repositories::user::UserRepository,
     types::{AppResult, Id},
 };
@@ -13,7 +15,17 @@ impl UserService {
     }
 
     pub async fn create_user(&self, data: CreateUserDto) -> AppResult<User> {
-        Ok(self.0.create_user(data).await?)
+        let id = Uuid::now_v7();
+        Ok(self
+            .0
+            .create_user(CreateUserRepoDto {
+                id,
+                email: data.email,
+                password: data.password,
+                role: data.role,
+                username: data.username,
+            })
+            .await?)
     }
     pub async fn get_users(&self, limit: Option<i64>, offset: Option<i64>) -> AppResult<Vec<User>> {
         let limit = limit.unwrap_or(10);
@@ -22,6 +34,12 @@ impl UserService {
     }
     pub async fn get_user_by_id(&self, id: Id) -> AppResult<User> {
         self.0.get_user_by_id(id).await?.ok_or(AppError::NotFound)
+    }
+    pub async fn get_user_by_email(&self, email: &String) -> AppResult<User> {
+        self.0
+            .get_user_by_email(email)
+            .await?
+            .ok_or(AppError::NotFound)
     }
     pub async fn update_user(&self, id: Id, data: UpdateUserDto) -> AppResult<User> {
         self.0

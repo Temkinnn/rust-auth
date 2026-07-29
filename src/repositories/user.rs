@@ -1,6 +1,6 @@
 use crate::{
-    models::user::{CreateUserDto, Role, UpdateUserDto, User},
-    types::{Database, DatabaseResult},
+    models::user::{CreateUserRepoDto, Role, UpdateUserDto, User},
+    types::{Database, DatabaseResult, Id},
 };
 
 pub struct UserRepository(Database);
@@ -10,14 +10,15 @@ impl UserRepository {
         Self(pool)
     }
 
-    pub async fn create_user(&self, dto: CreateUserDto) -> DatabaseResult<User> {
+    pub async fn create_user(&self, dto: CreateUserRepoDto) -> DatabaseResult<User> {
         sqlx::query_as!(
             User,
             "
-            Insert into users (username, email, password, role)
-            Values ($1, $2, $3, $4)
+            Insert into users (id, username, email, password, role)
+            Values ($1, $2, $3, $4, $5)
             Returning id, username, email, password, role as \"role: Role\"
             ",
+            dto.id,
             dto.username,
             dto.email,
             dto.password,
@@ -42,7 +43,7 @@ impl UserRepository {
         .await
     }
 
-    pub async fn get_user_by_id(&self, id: String) -> DatabaseResult<Option<User>> {
+    pub async fn get_user_by_id(&self, id: Id) -> DatabaseResult<Option<User>> {
         sqlx::query_as!(
             User,
             "
@@ -55,9 +56,22 @@ impl UserRepository {
         .await
     }
 
+    pub async fn get_user_by_email(&self, email: &String) -> DatabaseResult<Option<User>> {
+        sqlx::query_as!(
+            User,
+            "
+            Select id, username, email, password, role as \"role: Role\" from users
+            Where email = $1
+            ",
+            email
+        )
+        .fetch_optional(&self.0)
+        .await
+    }
+
     pub async fn update_user_by_id(
         &self,
-        id: String,
+        id: Id,
         dto: UpdateUserDto,
     ) -> DatabaseResult<Option<User>> {
         sqlx::query_as!(
@@ -82,7 +96,7 @@ impl UserRepository {
         .await
     }
 
-    pub async fn delete_user_by_id(&self, id: String) -> DatabaseResult<Option<User>> {
+    pub async fn delete_user_by_id(&self, id: Id) -> DatabaseResult<Option<User>> {
         sqlx::query_as!(
             User,
             r#"

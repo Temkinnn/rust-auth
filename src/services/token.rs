@@ -4,7 +4,7 @@ use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode}
 
 use crate::{
     env::Env,
-    models::token::Claims,
+    models::token::{Claims, Tokens},
     types::{AppResult, Id},
 };
 
@@ -43,7 +43,7 @@ impl TokenService {
         )?)
     }
 
-    pub fn generate_refresh_token(&self, id: Id) -> AppResult<String> {
+    fn generate_refresh_token(&self, id: Id) -> AppResult<String> {
         let exp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .expect("Failed to get Current Time")
@@ -60,6 +60,16 @@ impl TokenService {
             &claims,
             &EncodingKey::from_secret(self.secret.as_bytes()),
         )?)
+    }
+
+    pub fn generate_tokens(&self, id: Id) -> AppResult<Tokens> {
+        let access_token = self.generate_access_token(id)?;
+        let refresh_token = self.generate_refresh_token(id)?;
+
+        Ok(Tokens {
+            access_token,
+            refresh_token,
+        })
     }
 
     pub fn verify_token(&self, token: String) -> AppResult<Claims> {

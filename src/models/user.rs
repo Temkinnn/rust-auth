@@ -1,5 +1,7 @@
+use uuid::Uuid;
+
 pub struct User {
-    pub id: String,
+    pub id: Uuid,
     pub username: String,
     pub email: String,
     pub password: String,
@@ -14,6 +16,14 @@ pub enum Role {
 }
 
 pub struct CreateUserDto {
+    pub username: String,
+    pub email: String,
+    pub password: String,
+    pub role: Option<Role>,
+}
+
+pub struct CreateUserRepoDto {
+    pub id: Uuid,
     pub username: String,
     pub email: String,
     pub password: String,
