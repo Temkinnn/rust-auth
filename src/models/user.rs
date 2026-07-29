@@ -1,5 +1,6 @@
 use uuid::Uuid;
 
+#[derive(Debug)]
 pub struct User {
     pub id: Uuid,
     pub username: String,
@@ -9,7 +10,7 @@ pub struct User {
 }
 
 #[derive(sqlx::Type, Debug)]
-#[sqlx(type_name = "user_role")]
+#[sqlx(type_name = "role")]
 pub enum Role {
     Admin,
     User,

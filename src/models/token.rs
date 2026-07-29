@@ -15,6 +15,7 @@ pub struct RefreshClaims {
     pub exp: usize,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Tokens {
     pub access_token: String,
     pub refresh_token: String,

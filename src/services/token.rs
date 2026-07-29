@@ -7,7 +7,7 @@ use crate::{
     config::jwt::JwtConfig,
     models::token::{AccessClaims, RefreshClaims, Tokens},
     repositories::token::TokenRepository,
-    types::{AppResult, Id, Redis},
+    types::{AppResult, Id},
 };
 
 pub struct TokenService {
@@ -87,18 +87,18 @@ impl TokenService {
         Ok(token_data.claims)
     }
 
-    pub async fn save_refresh_token(&mut self, token: String) -> AppResult<()> {
+    pub async fn save_refresh_token(&self, token: String) -> AppResult<()> {
         let verified_token = self.verify_refresh_token(&token)?;
 
         let exp = self.jwt.refresh_expiration.as_secs();
         self.repo.save_token(verified_token.jti, token, exp).await
     }
 
-    pub async fn delete_refresh_token(&mut self, jti: Id) -> AppResult<()> {
+    pub async fn delete_refresh_token(&self, jti: Id) -> AppResult<()> {
         self.repo.delete_token(jti).await
     }
 
-    pub async fn update_refresh_token(&mut self, token: String) -> AppResult<()> {
+    pub async fn update_refresh_token(&self, token: String) -> AppResult<()> {
         let verified_token = self.verify_refresh_token(&token)?;
 
         let exp = self.jwt.refresh_expiration.as_secs();

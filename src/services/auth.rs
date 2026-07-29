@@ -1,4 +1,6 @@
-use std::sync::Arc;
+use std::{sync::Arc, time::Instant};
+
+use tracing::instrument;
 
 use crate::{
     errors::AppError,
@@ -26,7 +28,7 @@ impl AuthService {
         }
     }
 
-    pub async fn register(&mut self, data: RegistrationCredentials) -> AppResult<Tokens> {
+    pub async fn register(&self, data: RegistrationCredentials) -> AppResult<Tokens> {
         let user_exists = match self.user_service.get_user_by_email(&data.email).await {
             Ok(_) => true,
             Err(AppError::NotFound) => false,
@@ -56,7 +58,7 @@ impl AuthService {
         Ok(tokens)
     }
 
-    pub async fn login(&mut self, data: LoginCredentials) -> AppResult<Tokens> {
+    pub async fn login(&self, data: LoginCredentials) -> AppResult<Tokens> {
         let user = self.user_service.get_user_by_email(&data.email).await?;
 
         let verified_password = self
@@ -75,7 +77,7 @@ impl AuthService {
         Ok(tokens)
     }
 
-    pub async fn refresh(&mut self, refresh_token: String) -> AppResult<String> {
+    pub async fn refresh(&self, refresh_token: String) -> AppResult<String> {
         let verified_token = self.token_service.verify_refresh_token(&refresh_token)?;
 
         let user = self.user_service.get_user_by_id(verified_token.sub).await?;
@@ -88,7 +90,7 @@ impl AuthService {
         Ok(tokens.access_token)
     }
 
-    pub async fn logout(&mut self, refresh_token: String) -> AppResult<()> {
+    pub async fn logout(&self, refresh_token: String) -> AppResult<()> {
         let verified_token = self.token_service.verify_refresh_token(&refresh_token)?;
         self.token_service
             .delete_refresh_token(verified_token.jti)
