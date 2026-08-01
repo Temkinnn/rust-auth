@@ -27,7 +27,7 @@ pub enum AppError {
     AlreadyExists,
 
     #[error("Unauthorized")]
-    Unathorized,
+    Unauthorized,
 
     #[error("Invalid credentials")]
     InvalidCredentials,
@@ -42,7 +42,7 @@ impl ResponseError for AppError {
             Self::Jwt(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::NotFound => StatusCode::NOT_FOUND,
             Self::AlreadyExists => StatusCode::CONFLICT,
-            Self::Unathorized => StatusCode::UNAUTHORIZED,
+            Self::Unauthorized => StatusCode::UNAUTHORIZED,
             Self::InvalidCredentials => StatusCode::BAD_REQUEST,
             Self::Internal => StatusCode::INTERNAL_SERVER_ERROR,
         }

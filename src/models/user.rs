@@ -1,6 +1,7 @@
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct User {
     pub id: Uuid,
     pub username: String,
@@ -9,7 +10,7 @@ pub struct User {
     pub role: Role,
 }
 
-#[derive(sqlx::Type, Debug)]
+#[derive(sqlx::Type, Debug, Serialize, Deserialize)]
 #[sqlx(type_name = "role")]
 pub enum Role {
     Admin,

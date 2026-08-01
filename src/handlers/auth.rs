@@ -1,5 +1,7 @@
 use actix_web::{
-    HttpResponse, Responder, post,
+    HttpResponse, Responder,
+    cookie::{Cookie, SameSite},
+    post,
     web::{self, ServiceConfig, scope},
 };
 
@@ -15,7 +17,15 @@ async fn login(
     data: web::Json<LoginCredentials>,
 ) -> AppResult<impl Responder> {
     let tokens = services.auth.login(data.into_inner()).await?;
-    Ok(HttpResponse::Ok().json(tokens))
+    
+    let cookie = Cookie::build("refresh_t", &tokens.refresh_token)
+        .http_only(true)
+        .secure(true)
+        .same_site(SameSite::Lax)
+        .path("/")
+        .finish();
+    
+    Ok(HttpResponse::Ok().cookie(cookie).json(tokens))
 }
 
 #[post("/register")]
@@ -24,7 +34,9 @@ async fn register(
     data: web::Json<RegistrationCredentials>,
 ) -> AppResult<impl Responder> {
     let tokens = services.auth.register(data.into_inner()).await?;
-    Ok(HttpResponse::Ok().json(tokens))
+    Ok(HttpResponse::Ok()
+        .cookie(Cookie::new("refresh_t", &tokens.refresh_token))
+        .json(tokens))
 }
 
 pub fn auth_router(cfg: &mut ServiceConfig) {
