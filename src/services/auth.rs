@@ -1,6 +1,4 @@
-use std::{sync::Arc, time::Instant};
-
-use tracing::instrument;
+use std::sync::Arc;
 
 use crate::{
     errors::AppError,
@@ -39,7 +37,7 @@ impl AuthService {
             return Err(AppError::AlreadyExists);
         }
 
-        let hashed_password = self.password_service.hash_password(&data.password)?;
+        let hashed_password = self.password_service.hash_password(&data.password).await?;
 
         let user = self
             .user_service
@@ -63,7 +61,8 @@ impl AuthService {
 
         let verified_password = self
             .password_service
-            .verify_password(&data.password, &user.password)?;
+            .verify_password(&data.password, &user.password)
+            .await?;
 
         if !verified_password {
             return Err(AppError::InvalidCredentials);

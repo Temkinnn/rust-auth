@@ -11,11 +11,14 @@ pub enum AppError {
     #[error("Storage Error")]
     Redis(#[from] RedisError),
 
-    #[error("Internal Server Error")]
+    #[error("{0}")]
     Password(#[from] argon2::password_hash::Error),
 
-    #[error("Internal Server Error")]
+    #[error("{0}")]
     Jwt(#[from] jsonwebtoken::errors::Error),
+
+    #[error("Internal Server Error")]
+    Internal,
 
     #[error("Resource not found")]
     NotFound,
@@ -33,14 +36,15 @@ pub enum AppError {
 impl ResponseError for AppError {
     fn status_code(&self) -> StatusCode {
         match self {
-            AppError::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            AppError::Redis(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            AppError::Password(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            AppError::Jwt(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            AppError::NotFound => StatusCode::NOT_FOUND,
-            AppError::AlreadyExists => StatusCode::CONFLICT,
-            AppError::Unathorized => StatusCode::UNAUTHORIZED,
-            AppError::InvalidCredentials => StatusCode::BAD_REQUEST,
+            Self::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::Redis(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::Password(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::Jwt(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::NotFound => StatusCode::NOT_FOUND,
+            Self::AlreadyExists => StatusCode::CONFLICT,
+            Self::Unathorized => StatusCode::UNAUTHORIZED,
+            Self::InvalidCredentials => StatusCode::BAD_REQUEST,
+            Self::Internal => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 
