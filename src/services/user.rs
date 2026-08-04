@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::{
     errors::AppError,
-    models::user::{CreateUserDto, CreateUserRepoDto, UpdateUserDto, User},
+    models::user::{CreateUserDto, CreateUserRepoDto, Role, UpdateUserDto, User},
     repositories::user::UserRepository,
     types::{AppResult, Id},
 };
@@ -41,6 +41,17 @@ impl UserService {
             .await?
             .ok_or(AppError::NotFound)
     }
+
+    pub async fn get_user_role_by_id(&self, id: Id) -> AppResult<Role> {
+        let user_role = self
+            .0
+            .get_user_role_by_id(id)
+            .await?
+            .ok_or(AppError::NotFound)?;
+        let role = user_role.role;
+        Ok(role)
+    }
+
     pub async fn update_user(&self, id: Id, data: UpdateUserDto) -> AppResult<User> {
         self.0
             .update_user_by_id(id, data)

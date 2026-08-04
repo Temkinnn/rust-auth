@@ -26,7 +26,7 @@ async fn login(
         .path("/")
         .finish();
 
-    Ok(HttpResponse::Ok().cookie(cookie).json(tokens))
+    Ok(HttpResponse::Created().cookie(cookie).json(tokens))
 }
 
 #[post("/register")]
@@ -43,7 +43,7 @@ async fn register(
         .path("/")
         .finish();
 
-    Ok(HttpResponse::Ok().cookie(cookie).json(tokens))
+    Ok(HttpResponse::Created().cookie(cookie).json(tokens))
 }
 
 #[post("/refresh")]

@@ -17,6 +17,12 @@ pub enum Role {
     User,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UserRole {
+    pub role: Role,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreateUserDto {
     pub username: String,
     pub email: String,
@@ -32,6 +38,7 @@ pub struct CreateUserRepoDto {
     pub role: Option<Role>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateUserDto {
     pub username: Option<String>,
     pub email: Option<String>,

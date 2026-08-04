@@ -1,5 +1,5 @@
 use crate::{
-    models::user::{CreateUserRepoDto, Role, UpdateUserDto, User},
+    models::user::{CreateUserRepoDto, Role, UpdateUserDto, User, UserRole},
     types::{Database, DatabaseResult, Id},
 };
 
@@ -64,6 +64,19 @@ impl UserRepository {
             Where email = $1
             ",
             email
+        )
+        .fetch_optional(&self.0)
+        .await
+    }
+
+    pub async fn get_user_role_by_id(&self, id: Id) -> DatabaseResult<Option<UserRole>> {
+        sqlx::query_as!(
+            UserRole,
+            "
+            Select role as \"role: Role\" from users
+            Where id = $1
+            ",
+            id
         )
         .fetch_optional(&self.0)
         .await
