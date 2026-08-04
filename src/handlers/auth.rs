@@ -26,7 +26,7 @@ async fn login(
         .path("/")
         .finish();
 
-    Ok(HttpResponse::Created().cookie(cookie).json(tokens))
+    Ok(HttpResponse::Ok().cookie(cookie).json(tokens))
 }
 
 #[post("/register")]

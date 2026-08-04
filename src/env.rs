@@ -13,7 +13,7 @@ pub struct Env {
 }
 
 impl Env {
-    pub fn init() -> Self {
+    pub async fn init() -> Self {
         dotenvy::dotenv().expect("Failed to load enviroment variables");
 
         let host = env::var("HOST").expect("Failed to load 'host' variable");

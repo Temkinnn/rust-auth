@@ -11,7 +11,7 @@ async fn main() -> std::io::Result<()> {
     let config = AppConfig::init().await;
     let jwt_config = JwtConfig::init(&config.env);
 
-    let repos = Repositories::init(config.db, config.redis);
+    let repos = Repositories::init(config.db, config.cache);
     let services = Services::init(repos, jwt_config);
 
     let services_data = web::Data::new(services);
