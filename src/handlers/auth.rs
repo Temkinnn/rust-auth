@@ -1,5 +1,5 @@
 use actix_web::{
-    HttpResponse, Responder,
+    HttpRequest, HttpResponse, Responder,
     cookie::{Cookie, SameSite},
     post,
     web::{self, ServiceConfig, scope},
@@ -7,6 +7,7 @@ use actix_web::{
 
 use crate::{
     config::services::Services,
+    errors::AppError,
     models::auth::{LoginCredentials, RegistrationCredentials},
     types::AppResult,
 };
@@ -17,14 +18,14 @@ async fn login(
     data: web::Json<LoginCredentials>,
 ) -> AppResult<impl Responder> {
     let tokens = services.auth.login(data.into_inner()).await?;
-    
+
     let cookie = Cookie::build("refresh_t", &tokens.refresh_token)
         .http_only(true)
         .secure(true)
         .same_site(SameSite::Lax)
         .path("/")
         .finish();
-    
+
     Ok(HttpResponse::Ok().cookie(cookie).json(tokens))
 }
 
@@ -34,11 +35,41 @@ async fn register(
     data: web::Json<RegistrationCredentials>,
 ) -> AppResult<impl Responder> {
     let tokens = services.auth.register(data.into_inner()).await?;
-    Ok(HttpResponse::Ok()
-        .cookie(Cookie::new("refresh_t", &tokens.refresh_token))
-        .json(tokens))
+
+    let cookie = Cookie::build("refresh_t", &tokens.refresh_token)
+        .http_only(true)
+        .secure(true)
+        .same_site(SameSite::Lax)
+        .path("/")
+        .finish();
+
+    Ok(HttpResponse::Ok().cookie(cookie).json(tokens))
+}
+
+#[post("/refresh")]
+async fn refresh(req: HttpRequest, services: web::Data<Services>) -> AppResult<impl Responder> {
+    let refresh_token = req
+        .cookie("refresh_t")
+        .map(|c| c.value().to_string())
+        .ok_or(AppError::Unauthorized)?;
+
+    let tokens = services.auth.refresh(refresh_token).await?;
+
+    let cookie = Cookie::build("refresh_t", &tokens.refresh_token)
+        .http_only(true)
+        .secure(true)
+        .same_site(SameSite::Lax)
+        .path("/")
+        .finish();
+
+    Ok(HttpResponse::Ok().cookie(cookie).json(tokens))
 }
 
 pub fn auth_router(cfg: &mut ServiceConfig) {
-    cfg.service(scope("/auth").service(register).service(login));
+    cfg.service(
+        scope("/auth")
+            .service(register)
+            .service(login)
+            .service(refresh),
+    );
 }

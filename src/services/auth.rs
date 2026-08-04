@@ -8,7 +8,7 @@ use crate::{
         user::{CreateUserDto, Role},
     },
     services::{password::PasswordService, token::TokenService, user::UserService},
-    types::AppResult,
+    types::{AppResult, Token},
 };
 
 pub struct AuthService {
@@ -76,20 +76,21 @@ impl AuthService {
         Ok(tokens)
     }
 
-    pub async fn refresh(&self, refresh_token: String) -> AppResult<String> {
-        let verified_token = self.token_service.verify_refresh_token(&refresh_token)?;
-
-        let user = self.user_service.get_user_by_id(verified_token.sub).await?;
-
-        let tokens = self.token_service.generate_tokens(user.id)?;
-        self.token_service
-            .update_refresh_token(tokens.refresh_token)
+    pub async fn refresh(&self, refresh_token: Token) -> AppResult<Tokens> {
+        let verified_token = self
+            .token_service
+            .check_refresh_token(&refresh_token)
             .await?;
 
-        Ok(tokens.access_token)
+        let tokens = self.token_service.generate_tokens(verified_token.sub)?;
+        self.token_service
+            .update_refresh_token(verified_token.jti, tokens.refresh_token.clone())
+            .await?;
+
+        Ok(tokens)
     }
 
-    pub async fn logout(&self, refresh_token: String) -> AppResult<()> {
+    pub async fn logout(&self, refresh_token: Token) -> AppResult<()> {
         let verified_token = self.token_service.verify_refresh_token(&refresh_token)?;
         self.token_service
             .delete_refresh_token(verified_token.jti)

@@ -17,15 +17,11 @@ pub async fn auth(
     let services = req
         .app_data::<web::Data<Services>>()
         .ok_or_else(|| actix_web::Error::from(AppError::Unauthorized))?;
-
-    info!("cookies: {:?}", req.cookies());
     
     let refresh_token = req
         .cookie("refresh_t")
         .map(|c| c.value().to_string())
         .ok_or_else(|| actix_web::Error::from(AppError::Unauthorized))?;
-
-    info!(refresh_token = %refresh_token);
 
     let claims = services
         .token

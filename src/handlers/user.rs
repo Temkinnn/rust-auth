@@ -6,7 +6,7 @@ use actix_web::{
 use uuid::Uuid;
 
 use crate::{
-    config::services::Services, errors::AppError, midlewares::auth::auth, types::AppResult,
+    config::services::Services, errors::AppError, middlewares::auth::auth, types::AppResult,
 };
 
 #[get("/me")]

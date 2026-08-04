@@ -5,9 +5,10 @@ use uuid::Uuid;
 
 use crate::{
     config::jwt::JwtConfig,
+    errors::AppError,
     models::token::{AccessClaims, RefreshClaims, Tokens},
     repositories::token::TokenRepository,
-    types::{AppResult, Id},
+    types::{AppResult, Id, Token},
 };
 
 pub struct TokenService {
@@ -67,7 +68,7 @@ impl TokenService {
         })
     }
 
-    pub fn verify_access_token(&self, token: &String) -> AppResult<AccessClaims> {
+    pub fn verify_access_token(&self, token: &Token) -> AppResult<AccessClaims> {
         let token_data = decode::<AccessClaims>(
             token,
             &DecodingKey::from_secret(self.jwt.secret.as_bytes()),
@@ -77,7 +78,7 @@ impl TokenService {
         Ok(token_data.claims)
     }
 
-    pub fn verify_refresh_token(&self, token: &String) -> AppResult<RefreshClaims> {
+    pub fn verify_refresh_token(&self, token: &Token) -> AppResult<RefreshClaims> {
         let token_data = decode::<RefreshClaims>(
             token,
             &DecodingKey::from_secret(self.jwt.secret.as_bytes()),
@@ -87,7 +88,19 @@ impl TokenService {
         Ok(token_data.claims)
     }
 
-    pub async fn save_refresh_token(&self, token: String) -> AppResult<()> {
+    pub async fn check_refresh_token(&self, token: &Token) -> AppResult<RefreshClaims> {
+        let refresh_claims = self.verify_refresh_token(token)?;
+
+        let _ = self
+            .repo
+            .get_token(refresh_claims.jti)
+            .await?
+            .ok_or(AppError::Unauthorized)?;
+
+        Ok(refresh_claims)
+    }
+
+    pub async fn save_refresh_token(&self, token: Token) -> AppResult<()> {
         let verified_token = self.verify_refresh_token(&token)?;
 
         let exp = self.jwt.refresh_expiration.as_secs();
@@ -98,10 +111,12 @@ impl TokenService {
         self.repo.delete_token(jti).await
     }
 
-    pub async fn update_refresh_token(&self, token: String) -> AppResult<()> {
+    pub async fn update_refresh_token(&self, jti: Id, token: Token) -> AppResult<()> {
         let verified_token = self.verify_refresh_token(&token)?;
 
         let exp = self.jwt.refresh_expiration.as_secs();
-        self.repo.update_token(verified_token.jti, token, exp).await
+        self.repo
+            .update_token(jti, verified_token.jti, token, exp)
+            .await
     }
 }
