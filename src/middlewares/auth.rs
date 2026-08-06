@@ -18,18 +18,17 @@ pub async fn auth_middleware(
         .app_data::<web::Data<Services>>()
         .ok_or_else(|| actix_web::Error::from(AppError::Internal))?;
 
-    let refresh_token = req
-        .cookie("refresh_t")
-        .map(|c| c.value().to_string())
-        .ok_or_else(|| actix_web::Error::from(AppError::Unauthorized))?;
+    let token = req
+        .headers()
+        .get("Authorization")
+        .ok_or_else(|| actix_web::Error::from(AppError::Unauthorized))?
+        .to_str()
+        .map_err(|_| actix_web::Error::from(AppError::Internal))?
+        .strip_prefix("Bearer ")
+        .ok_or_else(|| actix_web::Error::from(AppError::Unauthorized))?
+        .to_string();
 
-    let claims = services
-        .token
-        .verify_refresh_token(&refresh_token)
-        .map_err(|e| {
-            tracing::warn!(error = ?e, "refresh token verification failed");
-            actix_web::Error::from(AppError::Unauthorized)
-        })?;
+    let claims = services.token.verify_access_token(&token)?;
 
     let user_id = claims.sub;
 

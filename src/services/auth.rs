@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use validator::Validate;
+
 use crate::{
     errors::AppError,
     models::{
@@ -27,6 +29,7 @@ impl AuthService {
     }
 
     pub async fn register(&self, data: RegistrationCredentials) -> AppResult<Tokens> {
+        data.validate()?;
         let user_exists = match self.user_service.get_user_by_email(&data.email).await {
             Ok(_) => true,
             Err(AppError::NotFound) => false,
@@ -57,6 +60,7 @@ impl AuthService {
     }
 
     pub async fn login(&self, data: LoginCredentials) -> AppResult<Tokens> {
+        data.validate()?;
         let user = self.user_service.get_user_by_email(&data.email).await?;
 
         let verified_password = self

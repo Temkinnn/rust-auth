@@ -20,6 +20,7 @@ utoipa = { version = "5.5.0", features = ["actix_extras"] }
 utoipa-actix-web = "0.1.2"
 utoipa-swagger-ui = { version = "9.0.2", features = ["actix-web"] }
 uuid = { version = "1.24.0", features = ["v7", "serde"] }
+validator = { version = "0.21.0", features = ["derive"] }
 
 [workspace.lints.clippy]
 pedantic = "warn"

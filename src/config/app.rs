@@ -16,7 +16,7 @@ impl AppConfig {
 
         let env = Self::env_init().await;
         let db = Self::db_init(&env.database).await;
-        let cache = Self::cache_init(&env.database).await;
+        let cache = Self::cache_init(&env.redis).await;
 
         Self { env, db, cache }
     }

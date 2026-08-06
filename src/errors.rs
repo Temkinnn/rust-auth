@@ -1,5 +1,4 @@
 use actix_web::{HttpResponse, ResponseError, http::StatusCode};
-use redis::RedisError;
 use serde_json::json;
 use thiserror::Error;
 
@@ -9,13 +8,16 @@ pub enum AppError {
     Database(#[from] sqlx::Error),
 
     #[error("Storage Error")]
-    Redis(#[from] RedisError),
+    Redis(#[from] redis::RedisError),
 
     #[error("{0}")]
     Password(#[from] argon2::password_hash::Error),
 
     #[error("{0}")]
     Jwt(#[from] jsonwebtoken::errors::Error),
+
+    #[error("{0}")]
+    Validation(#[from] validator::ValidationErrors),
 
     #[error("Internal Server Error")]
     Internal,
@@ -43,12 +45,13 @@ impl ResponseError for AppError {
             Self::Redis(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::Password(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::Jwt(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            Self::NotFound => StatusCode::NOT_FOUND,
-            Self::AlreadyExists => StatusCode::CONFLICT,
+            Self::Internal => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::Validation(_) => StatusCode::BAD_REQUEST,
+            Self::InvalidCredentials => StatusCode::BAD_REQUEST,
             Self::Unauthorized => StatusCode::UNAUTHORIZED,
             Self::Forbidden => StatusCode::FORBIDDEN,
-            Self::InvalidCredentials => StatusCode::BAD_REQUEST,
-            Self::Internal => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::AlreadyExists => StatusCode::CONFLICT,
+            Self::NotFound => StatusCode::NOT_FOUND,
         }
     }
 

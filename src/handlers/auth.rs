@@ -1,7 +1,7 @@
 use actix_web::{
     HttpRequest, HttpResponse, Responder,
     cookie::{Cookie, SameSite},
-    post,
+    delete, post, put,
     web::{self, ServiceConfig, scope},
 };
 
@@ -46,7 +46,7 @@ async fn register(
     Ok(HttpResponse::Created().cookie(cookie).json(tokens))
 }
 
-#[post("/refresh")]
+#[put("/refresh")]
 async fn refresh(req: HttpRequest, services: web::Data<Services>) -> AppResult<impl Responder> {
     let refresh_token = req
         .cookie("refresh_t")
@@ -65,11 +65,24 @@ async fn refresh(req: HttpRequest, services: web::Data<Services>) -> AppResult<i
     Ok(HttpResponse::Ok().cookie(cookie).json(tokens))
 }
 
+#[delete("/logout")]
+async fn logout(req: HttpRequest, services: web::Data<Services>) -> AppResult<impl Responder> {
+    let refresh_token = req
+        .cookie("refresh_t")
+        .map(|c| c.value().to_string())
+        .ok_or(AppError::Unauthorized)?;
+
+    services.auth.logout(refresh_token).await?;
+
+    Ok(HttpResponse::Ok())
+}
+
 pub fn auth_router(cfg: &mut ServiceConfig) {
     cfg.service(
         scope("/auth")
             .service(register)
             .service(login)
-            .service(refresh),
+            .service(refresh)
+            .service(logout),
     );
 }

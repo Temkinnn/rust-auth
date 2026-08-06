@@ -1,4 +1,5 @@
 use uuid::Uuid;
+use validator::Validate;
 
 use crate::{
     errors::AppError,
@@ -15,6 +16,7 @@ impl UserService {
     }
 
     pub async fn create_user(&self, data: CreateUserDto) -> AppResult<User> {
+        data.validate()?;
         let id = Uuid::now_v7();
         Ok(self
             .0

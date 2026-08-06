@@ -1,7 +1,5 @@
 use serde::Deserialize;
 
-
-
 #[derive(Deserialize)]
 pub struct LimitOffsetQuery {
     pub limit: Option<i64>,
