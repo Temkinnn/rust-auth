@@ -61,7 +61,11 @@ impl AuthService {
 
     pub async fn login(&self, data: LoginCredentials) -> AppResult<Tokens> {
         data.validate()?;
-        let user = self.user_service.get_user_by_email(&data.email).await?;
+        let user = self
+            .user_service
+            .get_user_by_email(&data.email)
+            .await
+            .map_err(|_| AppError::InvalidCredentials)?;
 
         let verified_password = self
             .password_service

@@ -24,7 +24,7 @@ pub async fn admin_middleware(
         .get::<Uuid>()
         .ok_or(AppError::Unauthorized)?;
 
-    info!("User id: {}", user_id);
+    info!("Admin id: {}", user_id);
 
     match services.user.get_user_role_by_id(user_id).await? {
         Role::User => Err(actix_web::Error::from(AppError::Forbidden)),

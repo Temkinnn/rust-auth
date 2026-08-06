@@ -1,4 +1,5 @@
 pub mod config;
+pub mod docs;
 mod env;
 mod errors;
 pub mod handlers;

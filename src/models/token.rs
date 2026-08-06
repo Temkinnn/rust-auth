@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
 use crate::types::Id;
 
@@ -15,7 +16,7 @@ pub struct RefreshClaims {
     pub exp: usize,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct Tokens {
     pub access_token: String,
     pub refresh_token: String,

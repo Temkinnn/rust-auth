@@ -1,5 +1,5 @@
 use crate::{
-    models::user::{CreateUserRepoDto, Role, UpdateUserDto, User, UserRole},
+    models::user::{CreateUserDto, Role, UpdateUserDto, User, UserRole},
     types::{Database, DatabaseResult, Id},
 };
 
@@ -10,15 +10,14 @@ impl UserRepository {
         Self(db)
     }
 
-    pub async fn create_user(&self, dto: CreateUserRepoDto) -> DatabaseResult<User> {
+    pub async fn create_user(&self, dto: CreateUserDto) -> DatabaseResult<User> {
         sqlx::query_as!(
             User,
             "
-            Insert into users (id, username, email, password, role)
-            Values ($1, $2, $3, $4, $5)
+            Insert into users (username, email, password, role)
+            Values ($1, $2, $3, $4)
             Returning id, username, email, password, role as \"role: Role\"
             ",
-            dto.id,
             dto.username,
             dto.email,
             dto.password,

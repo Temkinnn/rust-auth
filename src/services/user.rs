@@ -1,9 +1,8 @@
-use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
     errors::AppError,
-    models::user::{CreateUserDto, CreateUserRepoDto, Role, UpdateUserDto, User},
+    models::user::{CreateUserDto, Role, UpdateUserDto, User},
     repositories::user::UserRepository,
     types::{AppResult, Id},
 };
@@ -17,17 +16,7 @@ impl UserService {
 
     pub async fn create_user(&self, data: CreateUserDto) -> AppResult<User> {
         data.validate()?;
-        let id = Uuid::now_v7();
-        Ok(self
-            .0
-            .create_user(CreateUserRepoDto {
-                id,
-                email: data.email,
-                password: data.password,
-                role: data.role,
-                username: data.username,
-            })
-            .await?)
+        Ok(self.0.create_user(data).await?)
     }
     pub async fn get_users(&self, limit: Option<i64>, offset: Option<i64>) -> AppResult<Vec<User>> {
         let limit = limit.unwrap_or(10);

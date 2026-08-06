@@ -6,6 +6,7 @@ use crate::errors::AppError;
 
 pub type Database = Pool<Postgres>;
 pub type Redis = Client;
+
 pub type Id = Uuid;
 pub type Token = String;
 

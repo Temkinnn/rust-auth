@@ -1,8 +1,9 @@
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct User {
     pub id: Uuid,
     pub username: String,
@@ -11,7 +12,7 @@ pub struct User {
     pub role: Role,
 }
 
-#[derive(sqlx::Type, Debug, Serialize, Deserialize)]
+#[derive(sqlx::Type, Debug, Serialize, Deserialize, ToSchema)]
 #[sqlx(type_name = "role")]
 pub enum Role {
     Admin,
@@ -23,7 +24,7 @@ pub struct UserRole {
     pub role: Role,
 }
 
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Serialize, Deserialize, Validate, ToSchema)]
 pub struct CreateUserDto {
     #[validate(length(min = 4, message = "Password must be at least 4 characters long"))]
     pub username: String,
@@ -34,15 +35,7 @@ pub struct CreateUserDto {
     pub role: Option<Role>,
 }
 
-pub struct CreateUserRepoDto {
-    pub id: Uuid,
-    pub username: String,
-    pub email: String,
-    pub password: String,
-    pub role: Option<Role>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Validate)]
+#[derive(Debug, Serialize, Deserialize, Validate, ToSchema)]
 pub struct UpdateUserDto {
     #[validate(length(min = 4, message = "Password must be at least 4 characters long"))]
     pub username: Option<String>,

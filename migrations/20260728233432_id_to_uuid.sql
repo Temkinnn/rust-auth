@@ -1,5 +1,0 @@
-ALTER TABLE users DROP CONSTRAINT IF EXISTS users_pkey;
-
-ALTER TABLE users 
-  ALTER COLUMN id TYPE uuid USING id::uuid,
-  ADD PRIMARY KEY (id);
